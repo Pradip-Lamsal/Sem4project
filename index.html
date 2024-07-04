@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>YOLO Object Detection</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        .box {
+            border: 1px solid black;
+            padding: 20px;
+            width: 30%;
+        }
+        video {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box" id="camera">
+            <h2>Camera Feed</h2>
+            <video id="video" autoplay></video>
+            <img id="frame" src="" alt="Video Frame">
+        </div>
+        <div class="box" id="price">
+            <h2>Object Price</h2>
+            <p id="price-value">Waiting for detection...</p>
+        </div>
+        <div class="box" id="recommendations">
+            <h2>Recommendations</h2>
+            <ul id="recommendation-list">
+                <li>Waiting for detection...</li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        const video = document.getElementById('video');
+        const frame = document.getElementById('frame');
+        const priceValue = document.getElementById('price-value');
+        const recommendationList = document.getElementById('recommendation-list');
+
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.log("Something went wrong!");
+                });
+        }
+
+        async function getPriceAndRecommendations() {
+            const response = await fetch('/get_price');
+            const data = await response.json();
+            priceValue.innerText = `Price of detected object (${data.object}): Rs. ${data.price}`;
+            recommendationList.innerHTML = '';
+            data.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.innerText = rec;
+                recommendationList.appendChild(li);
+            });
+        }
+
+        setInterval(getPriceAndRecommendations, 2000);
+    </script>
+</body>
+</html>
